@@ -34,12 +34,22 @@ init([]) ->
 
 %% ensure a client started under supervisor
 ensure_present(ClientId, Hosts, Opts) ->
+    error_logger:info_msg("====> ~p~n",["11111111111111111111111"]),
     ChildSpec = child_spec(ClientId, Hosts, Opts),
+    error_logger:info_msg("====> ~p~n",[ChildSpec]),
     case supervisor:start_child(?SUPERVISOR, ChildSpec) of
-        {ok, Pid} -> {ok, Pid};
-        {error, {already_started, Pid}} -> {ok, Pid};
-        {error, already_present} -> {error, client_not_running};
-        {error, Reason} -> {error, Reason}
+        {ok, Pid} ->
+            error_logger:info_msg("====> ~p~n",[1]),
+            {ok, Pid};
+        {error, {already_started, Pid}} ->
+            error_logger:info_msg("====> ~p~n",[2]),
+            {ok, Pid};
+        {error, already_present} ->
+            error_logger:info_msg("====> ~p~n",[3]),
+            {error, client_not_running};
+        {error, Reason} ->
+            error_logger:info_msg("====> 4 ~p~n",[Reason]),
+            {error, Reason}
     end.
 
 %% ensure client stopped and deleted under supervisor
