@@ -60,8 +60,8 @@ init_per_testcase(t_code_change_replayq, Config) ->
                     , replayq_dir => "/tmp/replayq1"
                     , replayq_seg_bytes => 20 * 1024 * 1024
                     , replayq_offload_mode => false
-                    , replayq_max_total_bytes => 1_000_000_000
-                    , retention_period => 1_000
+                    , replayq_max_total_bytes => 1000000000
+                    , retention_period => 1000
                     },
     {ok, Producers} = pulsar:ensure_supervised_producers( ?TEST_SUIT_CLIENT
                                                          , <<"my-topic">>
@@ -96,7 +96,7 @@ drain_messages(ExpectedN, Acc) ->
         Msg ->
             drain_messages(ExpectedN - 1, [Msg | Acc])
     after
-        60_000 ->
+        60000 ->
             ct:fail("expected messages have not arrived;~n  so far: ~100p", [Acc])
     end.
 
@@ -109,7 +109,7 @@ t_code_change_replayq(Config) ->
 
     %% wait producer to be connected for this test to avoid race
     %% conditions with looking up topic...
-    pulsar_test_utils:wait_for_state(ProducerPid, connected, _Retries = 5, _Sleep = 5_000),
+    pulsar_test_utils:wait_for_state(ProducerPid, connected, _Retries = 5, _Sleep = 5000),
 
     {_StatemState0, State0} = sys:get_state(ProducerPid),
 
@@ -123,7 +123,7 @@ t_code_change_replayq(Config) ->
        State0),
     #{replayq := Q, opts := Opts0} = State0,
     ?assertNot(replayq:is_mem_only(Q)),
-    ?assertMatch(#{retention_period := 1_000}, Opts0),
+    ?assertMatch(#{retention_period := 1000}, Opts0),
     OriginalSize = map_size(State0),
     %% FIXME: another way to check if open?
     #{w_cur := #{fd := {_, _, #{pid := ReplayQPID}}}} = Q,

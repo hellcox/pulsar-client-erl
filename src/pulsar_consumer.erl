@@ -86,7 +86,7 @@ connecting(info, {InetClose, _Sock}, State = #state{partitiontopic = Topic})
         when InetClose == tcp_closed; InetClose == ssl_closed ->
     log_error("tcp closed on topic: ~p~n", [Topic]),
     {next_state, idle, State#state{sock = undefined},
-     [{state_timeout, 5_000, do_connect}]};
+     [{state_timeout, 5000, do_connect}]};
 connecting(info, Msg, _State) ->
     logger:info("[pulsar-consumer][connecting] unknown message received ~p", [Msg]),
     keep_state_and_data.

@@ -79,15 +79,15 @@
 -export_type([ config/0
              ]).
 
--define(RECONNECT_TIMEOUT, 5_000).
--define(LOOKUP_TOPIC_TIMEOUT, 15_000).
+-define(RECONNECT_TIMEOUT, 5000).
+-define(LOOKUP_TOPIC_TIMEOUT, 15000).
 
 -define(MAX_REQ_ID, 4294836225).
 -define(MAX_SEQ_ID, 18445618199572250625).
 
 -define(DEFAULT_REPLAYQ_SEG_BYTES, 10 * 1024 * 1024).
--define(DEFAULT_REPLAYQ_LIMIT, 2_000_000_000).
--define(DEFAULT_MAX_BATCH_BYTES, 1_000_000).
+-define(DEFAULT_REPLAYQ_LIMIT, 2000000000).
+-define(DEFAULT_MAX_BATCH_BYTES, 1000000).
 -define(Q_ITEM(From, Ts, Messages), {From, Ts, Messages}).
 -define(INFLIGHT_REQ(QAckRef, FromsToMessages), {inflight_req, QAckRef, FromsToMessages}).
 -define(NEXT_STATE_IDLE_RECONNECT(State), {next_state, idle, State#{sock := undefined},
@@ -137,7 +137,7 @@ send(Pid, Messages) ->
                 | producer_disconnected
                 | term()}.
 send_sync(Pid, Messages) ->
-    send_sync(Pid, Messages, 5_000).
+    send_sync(Pid, Messages, 5000).
 
 -spec send_sync(gen_statem:server_ref(), [pulsar:message()], timeout()) ->
           {ok, send_receipt()}
@@ -634,7 +634,7 @@ send_batch_payload(Messages, SequenceId, #{
         ProducerName, Opts).
 
 start_keepalive() ->
-    erlang:send_after(30_000, self(), ping).
+    erlang:send_after(30000, self(), ping).
 
 next_request_id(State = #{request_id := ?MAX_REQ_ID}) ->
     State#{request_id := 1};
@@ -973,7 +973,7 @@ code_change_requests_down(Requests) ->
 %% them.  Calls might still be lost if the downgrade + processing the
 %% message afterwards takes longer than the call timeout.
 downgrade_buffered_send_requests(#{replayq := Q}) ->
-    {NewQ, QAckRef, BufferedItems} = replayq:pop(Q, #{count_limit => 10_000}),
+    {NewQ, QAckRef, BufferedItems} = replayq:pop(Q, #{count_limit => 10000}),
     replayq:ack(NewQ, QAckRef),
     lists:foreach(
       fun(?Q_ITEM(_From = undefined, _Timestamp, Messages)) ->

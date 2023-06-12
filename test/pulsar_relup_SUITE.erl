@@ -45,8 +45,8 @@ init_per_suite(Config) ->
                     , replayq_dir => "/tmp/replayq_" ++ ?MODULE_STRING
                     , replayq_seg_bytes => 20 * 1024 * 1024
                     , replayq_offload_mode => false
-                    , replayq_max_total_bytes => 1_000_000_000
-                    , retention_period => 1_000
+                    , replayq_max_total_bytes => 1000000000
+                    , retention_period => 1000
                     },
     {ok, Producers} = pulsar:ensure_supervised_producers( ?TEST_SUIT_CLIENT
                                                          , <<"my-topic">>

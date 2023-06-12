@@ -308,7 +308,7 @@ t_pulsar_(Strategy, Config) ->
     Data = #{key => <<"pulsar">>, value => <<"hello world">>},
     {ok, Producers} = pulsar:ensure_supervised_producers(?TEST_SUIT_CLIENT, "persistent://public/default/test", ProducerOpts),
     %% wait for consumer and producer to connect
-    timer:sleep(1_000),
+    timer:sleep(1000),
     {ok, Producers} = pulsar:ensure_supervised_producers(?TEST_SUIT_CLIENT, "persistent://public/default/test", ProducerOpts),
 
 
@@ -326,7 +326,7 @@ t_pulsar_(Strategy, Config) ->
     ok = snabbkaffe:start_trace(),
     snabbkaffe:block_until(
       ?match_n_events(2, #{?snk_kind := test_consumer_handle_message}),
-      5_000),
+      5000),
     ?tp(test_consumer_handle_message, #{}),
     erlang:exit(ProducerPid, kill),
     erlang:exit(ConsumerPid, kill),
@@ -397,13 +397,13 @@ t_pulsar_drop_expired_batch(Config) ->
                         Topic,
                         ConsumerOpts),
     ct:pal("started consumer"),
-    RetentionPeriodMS = 1_000,
+    RetentionPeriodMS = 1000,
     ProducerOpts = #{
         %% to speed up the test a bit
-        tcp_opts => [ {send_timeout, 5_000}
+        tcp_opts => [ {send_timeout, 5000}
                     , {send_timeout_close, true}
                     ],
-        connnect_timeout => 5_000,
+        connnect_timeout => 5000,
         batch_size => ?BATCH_SIZE,
         strategy => random,
         callback => {?MODULE, echo_callback, [self()]},
@@ -416,7 +416,7 @@ t_pulsar_drop_expired_batch(Config) ->
     ct:pal("started producer"),
     {_, ProducerPid} = pulsar_producers:pick_producer(Producers,
                                                       [#{key => <<"k">>, value => <<>>}]),
-    pulsar_test_utils:wait_for_state(ProducerPid, connected, _Retries = 15, _Sleep = 5_000),
+    pulsar_test_utils:wait_for_state(ProducerPid, connected, _Retries = 15, _Sleep = 5000),
 
     ct:pal("cutting connection with pulsar..."),
     pulsar_test_utils:enable_failure(FailureType, ProxyHost, ProxyPort),
@@ -426,7 +426,7 @@ t_pulsar_drop_expired_batch(Config) ->
     %% here before producing the messages to avoid it hanging during
     %% the send, at which point the check for expiration was already
     %% done...
-    pulsar_test_utils:wait_for_state(ProducerPid, idle, _Retries = 15, _Sleep = 5_000),
+    pulsar_test_utils:wait_for_state(ProducerPid, idle, _Retries = 15, _Sleep = 5000),
 
     %% Produce messages that'll expire
     ok = snabbkaffe:start_trace(),
@@ -437,7 +437,7 @@ t_pulsar_drop_expired_batch(Config) ->
                        [#{key => <<"k">>, value => integer_to_binary(SeqNo)}
                         || SeqNo <- lists:seq(1, 150)]),
           #{?snk_kind := pulsar_producer_send_requests_enqueued},
-          _Timeout1 = 35_000),
+          _Timeout1 = 35000),
     ct:pal("waiting for retention period to expire..."),
     ct:sleep(RetentionPeriodMS * 10),
 
@@ -448,21 +448,21 @@ t_pulsar_drop_expired_batch(Config) ->
     ct:pal("waiting for producer to be connected again"),
     {_, ProducerPid} = pulsar_producers:pick_producer(Producers,
                                                       [#{key => <<"k">>, value => <<>>}]),
-    pulsar_test_utils:wait_for_state(ProducerPid, connected, _Retries = 15, _Sleep = 5_000),
+    pulsar_test_utils:wait_for_state(ProducerPid, connected, _Retries = 15, _Sleep = 5000),
     ct:pal("producer connected"),
 
     receive
         {pulsar_message, _Topic, _Receipt, Payloads} ->
             error({should_have_expired, Payloads})
     after
-        1_000 ->
+        1000 ->
             ok
     end,
     receive
         {produce_response, {error, expired}} ->
             ok
     after
-        1_000 ->
+        1000 ->
             error(should_have_invoked_callback)
     end,
 
@@ -473,7 +473,7 @@ t_pulsar_drop_expired_batch(Config) ->
         {pulsar_message, _Topic1, _Receipt1, [<<"should receive">>]} ->
             ok
     after
-        30_000 ->
+        30000 ->
             error(timeout)
     end,
 
@@ -513,18 +513,18 @@ t_pulsar_drop_expired_batch_resend_inflight(Config) ->
          (Arg, State) ->
               meck:passthrough([Arg, State])
       end),
-    RetentionPeriodMS = 1_000,
+    RetentionPeriodMS = 1000,
     ProducerOpts = #{
         %% to speed up the test a bit
-        tcp_opts => [{send_timeout, 5_000}],
-        connnect_timeout => 5_000,
+        tcp_opts => [{send_timeout, 5000}],
+        connnect_timeout => 5000,
         batch_size => ?BATCH_SIZE,
         strategy => random,
         callback => {?MODULE, echo_callback, [self()]},
         replayq_dir => ReplayqDir,
         replayq_seg_bytes => 20 * 1024 * 1024,
         replayq_offload_mode => false,
-        replayq_max_total_bytes => 1_000_000_000,
+        replayq_max_total_bytes => 1000000000,
         retention_period => RetentionPeriodMS
     },
     {ok, Producers} = pulsar:ensure_supervised_producers(
@@ -534,7 +534,7 @@ t_pulsar_drop_expired_batch_resend_inflight(Config) ->
     ct:pal("started producer"),
     {_, ProducerPid} = pulsar_producers:pick_producer(Producers,
                                                       [#{key => <<"k">>, value => <<>>}]),
-    pulsar_test_utils:wait_for_state(ProducerPid, connected, _Retries = 5, _Sleep = 5_000),
+    pulsar_test_utils:wait_for_state(ProducerPid, connected, _Retries = 5, _Sleep = 5000),
 
 
     %% 1. produce some messages and, while we are processing them,
@@ -573,7 +573,7 @@ t_pulsar_drop_expired_batch_resend_inflight(Config) ->
          ct:pal("waiting for producer to be connected again"),
          {_, ProducerPid} = pulsar_producers:pick_producer(Producers,
                                                            [#{key => <<"k">>, value => <<>>}]),
-         pulsar_test_utils:wait_for_state(ProducerPid, connected, _Retries = 5, _Sleep = 5_000),
+         pulsar_test_utils:wait_for_state(ProducerPid, connected, _Retries = 5, _Sleep = 5000),
          ct:pal("producer connected"),
 
          %% we can't assert that the messages have been expired, as
@@ -586,7 +586,7 @@ t_pulsar_drop_expired_batch_resend_inflight(Config) ->
              {produce_response, {error, expired}} ->
                  ok
          after
-             1_000 ->
+             1000 ->
                  error(should_have_invoked_callback)
          end,
 
@@ -597,7 +597,7 @@ t_pulsar_drop_expired_batch_resend_inflight(Config) ->
              {pulsar_message, _Topic1, _Receipt1, [<<"should receive">>]} ->
                  ok
          after
-             15_000 ->
+             15000 ->
                  error(timeout)
          end,
          ok
@@ -644,7 +644,7 @@ t_pulsar_replayq(Config) ->
                         Topic,
                         ProducerOpts),
     ct:pal("started producer"),
-    ct:sleep(2_000),
+    ct:sleep(2000),
 
     TestPid = self(),
     ProduceInterval = 100,
@@ -692,7 +692,7 @@ t_pulsar_replayq(Config) ->
         receive
             {done, Total} -> Total
         after
-            10_000 ->
+            10000 ->
                 error(producer_didnt_stop)
         end,
 
@@ -738,7 +738,7 @@ t_pulsar_replayq_producer_restart(Config) ->
         replayq_dir => ReplayqDir,
         replayq_seg_bytes => 20 * 1024 * 1024,
         replayq_offload_mode => false,
-        replayq_max_total_bytes => 1_000_000_000,
+        replayq_max_total_bytes => 1000000000,
         retention_period => infinity
     },
     {ok, Producers} = pulsar:ensure_supervised_producers(
@@ -748,7 +748,7 @@ t_pulsar_replayq_producer_restart(Config) ->
     ct:pal("started producer"),
     {_, ProducerPid} = pulsar_producers:pick_producer(Producers,
                                                       [#{key => <<"k">>, value => <<"v">>}]),
-    pulsar_test_utils:wait_for_state(ProducerPid, connected, _Retries = 5, _Sleep = 5_000),
+    pulsar_test_utils:wait_for_state(ProducerPid, connected, _Retries = 5, _Sleep = 5000),
     ct:pal("producer connected"),
 
     TestPid = self(),
@@ -789,13 +789,13 @@ t_pulsar_replayq_producer_restart(Config) ->
         receive
             {done, Total} -> Total
         after
-            10_000 ->
+            10000 ->
                 error(producer_didnt_stop)
         end,
     ct:pal("produced ~b messages in total", [TotalProduced]),
     %% give it some time for the producer to enqueue them before
     %% killing it.
-    ct:sleep(5_000),
+    ct:sleep(5000),
     Ref = monitor(process, ProducerPid),
     exit(ProducerPid, kill),
     receive
@@ -861,13 +861,13 @@ t_overflow(Config) ->
     ct:pal("started producer"),
     {_, ProducerPid} = pulsar_producers:pick_producer(Producers,
                                                       [#{key => <<"k">>, value => <<"v">>}]),
-    pulsar_test_utils:wait_for_state(ProducerPid, connected, _Retries0 = 5, _Sleep0 = 5_000),
+    pulsar_test_utils:wait_for_state(ProducerPid, connected, _Retries0 = 5, _Sleep0 = 5000),
     ct:pal("producer connected"),
     ct:pal("cutting connection with pulsar"),
     pulsar_test_utils:enable_failure(down, ProxyHost, ProxyPort),
     ct:pal("connection cut"),
     %% ensure that the producer noticed pulsar is down
-    pulsar_test_utils:wait_for_state(ProducerPid, idle, _Retries1 = 5, _Sleep1 = 5_000),
+    pulsar_test_utils:wait_for_state(ProducerPid, idle, _Retries1 = 5, _Sleep1 = 5000),
     ct:pal("producer disconnected"),
     %% `From' is `undefined' for casts
     From = undefined,
@@ -890,13 +890,13 @@ t_overflow(Config) ->
             ?wait_async_action(
                ok = pulsar:send(Producers, [#{key => <<"k">>, value => integer_to_binary(N)}]),
                #{?snk_kind := pulsar_producer_send_requests_enqueued},
-               10_000)
+               10000)
       end,
       lists:seq(1, NumItems)),
     ct:pal("messages enqueued"),
 
     ct:pal("waiting for overflow callbacks"),
-    Resps = wait_callbacks(MessagesToDrop, _Timeout2 = 10_000),
+    Resps = wait_callbacks(MessagesToDrop, _Timeout2 = 10000),
     ?assert(lists:all(fun(R) -> R =:= {error, overflow} end, Resps),
             #{responses => Resps}),
 
@@ -931,7 +931,7 @@ t_pulsar_client_tune_error(Config) ->
       fun() ->
         %% now introduce the failure and kill it; the supervisor will restart it
         exit(ClientPid, kill),
-        ct:sleep(10_000),
+        ct:sleep(10000),
         %% should still be a registered child; if max restart
         %% intensity is reached, will be removed.
         ?assertMatch([_], supervisor:which_children(pulsar_client_sup)),

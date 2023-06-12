@@ -72,7 +72,7 @@ send(Producers, Batch) ->
 
 -spec send_sync(pulsar_producers:producers(), [message()]) -> {ok, _Response} | {error, term()}.
 send_sync(Producers, Batch) ->
-    Timeout = 5_000,
+    Timeout = 5000,
     send_sync(Producers, Batch, Timeout).
 
 -spec send_sync(pulsar_producers:producers(), [message()], timeout()) -> {ok, _Response} | {error, term()}.

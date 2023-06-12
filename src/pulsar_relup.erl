@@ -74,7 +74,7 @@ change_producers_up(ProducerPIDs, CurVsn, FromVsn) ->
     Extra = #{from_version => FromVsn, to_version => CurVsn},
     lists:foreach(
       fun(P) ->
-        sys:change_code(P, pulsar_producer, CurVsn, Extra, 30_000)
+        sys:change_code(P, pulsar_producer, CurVsn, Extra, 30000)
       end,
       ProducerPIDs).
 
@@ -87,7 +87,7 @@ change_producers_down(ProducerPIDs, CurVsn, ToVsn) ->
     Extra = #{from_version => CurVsn, to_version => ToVsn},
     lists:foreach(
       fun(P) ->
-        sys:change_code(P, pulsar_producer, {down, ToVsn}, Extra, 30_000)
+        sys:change_code(P, pulsar_producer, {down, ToVsn}, Extra, 30000)
       end,
       ProducerPIDs).
 
@@ -116,7 +116,7 @@ post_producer_code_load(ProducerPIDs, _CurVsn, ToVsn) ->
 
 -spec collect_and_downgrade_send_requests() -> ok.
 collect_and_downgrade_send_requests() ->
-    SendRequests = pulsar_relup:collect_send_requests(_Acc = [], _Limit = 10_000),
+    SendRequests = pulsar_relup:collect_send_requests(_Acc = [], _Limit = 10000),
     lists:foreach(
       fun(?SEND_REQ(_From = undefined, Messages)) ->
               self() ! {'$gen_cast', {send, Messages}};

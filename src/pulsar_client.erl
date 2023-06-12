@@ -59,7 +59,7 @@
 -define(PONG_TS, {pulsar_rcvd, pong}).
 -define(PONG_TIMEOUT, ?PING_INTERVAL * 2). %% 60s
 -define(CONN_TIMEOUT, 30000).
--define(RECONNECT_TIMEOUT, 5_000).
+-define(RECONNECT_TIMEOUT, 5000).
 
 start_link(ClientId, Servers, Opts) ->
     gen_server:start_link({local, ClientId}, ?MODULE, [Servers, Opts], []).
